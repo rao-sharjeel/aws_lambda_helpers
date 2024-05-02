@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'claim_response_consumer
+
+  Sample SAM Template for claim_response_consumer
+
+  '
+Globals:
+  Function:
+    Timeout: 880
+    MemorySize: 1024
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+Resources:
+  ClaimResponseConsumerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: Claim_Response_Consumer/ # this is where your lambda_handler should be for example app.lambda handler in app.py
+      Handler: app.lambda_handler # this is where the file containing lambda_hander should be defined with respect to CodeURI; the file structure is: Claim_Response_Consumer/app.lambda_handler with requirements in the same folder.
+      Runtime: python3.10
+      Architectures:
+      - x86_64
+      Events:
+        ClaimResponseConsumer:
+          Type: Api
+          Properties:
+            Path: /claim_response_consumer 
+            Method: get
+    Metadata:
+      SamResourceId: ClaimResponseConsumerFunction
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Ref: ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+Outputs:
+  ClaimResponseConsumerdApi:
+    Description: API Gateway endpoint URL for Prod stage for claim_response_consumer
+      function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/claim_response_consumer/
+  ClaimResponseConsumerFunction:
+    Description: Claim Response Consumer Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - ClaimResponseConsumerFunction
+      - Arn
+  ClaimResponseConsumerFunctionIamRole:
+    Description: Implicit IAM Role created for Claim Response Consumer Function
+    Value:
+      Fn::GetAtt:
+      - ClaimResponseConsumerFunctionRole
+      - Arn
